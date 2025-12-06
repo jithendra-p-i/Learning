@@ -1,5 +1,4 @@
 #include<stdio.h>
-#include<conio.h>
 #include<string.h>
 #include<stdlib.h>
 #include<time.h>
@@ -7,36 +6,38 @@
 
 #define MAX_WORDS 10
 #define MAX_WORD_LENGTH 30
-#define MAX_ATTEMPS 5
+#define MAX_ATTEMPTS 5
 
 int ChooseCategory();
 char *PickRandomSelectedWord(char SelectedCategoryWords[MAX_WORDS][MAX_WORD_LENGTH]);
-void InitializeRandomlySelectedWord(char* SelectedCategoryWords, char HiddenWord[MAX_WORDS]);
+void InitializeRandomlySelectedWord(char* SelectedCategoryWords, char HiddenWord[MAX_WORD_LENGTH]);
 int EvaluatePlayerGuess(char PlayerGuess, char* SelectedCategoryWords, char HiddenWord[]);
 
 int main()
 {
+    srand(time(NULL)); // Seed the random number generator once at the start
+
     int WrongGuessesByPlayer = 0;
     char LetterGuessedByPlayer;
 
     char AsianCountries[MAX_WORDS][MAX_WORD_LENGTH] = {"INDIA","NEPAL","BHUTAN","CHINA","BANGLADESH",
                                                        "SRILANKA","KOREA","JAPAN","INDONESIA","AFGANISTAN"};
     char IndiaCities[MAX_WORDS][MAX_WORD_LENGTH] = {"MUMBAI","CHENNAI","KOLKATA","DELHI","BANGALORE",
-                                                    "HYDERABAD","KERALA","TAMILNADU"};
-    char Animals[MAX_WORDS][MAX_WORD_LENGTH] = {"LIONS","TIGET","CHEETAH","LEOPARD","BEAR",
+                                                    "HYDERABAD","KERALA","TAMILNADU","PUNE","LUCKNOW"};
+    char Animals[MAX_WORDS][MAX_WORD_LENGTH] = {"LIONS","TIGER","CHEETAH","LEOPARD","BEAR",
                                                 "CAMEL","COW","DEER","ZEBRA","ELEPHANT"};
     char SelectedCategoryWords[MAX_WORDS][MAX_WORD_LENGTH] = {""};
 
     char* RandomlySelectedWord;
-    char HiddenWord[MAX_WORDS];
+    char HiddenWord[MAX_WORD_LENGTH];
 
-    int SeletedCategoryIndex = -1;
+    int SelectedCategoryIndex = -1;
     do
     {
-        SeletedCategoryIndex = ChooseCategory();
-    } while (SeletedCategoryIndex == -1);
+        SelectedCategoryIndex = ChooseCategory();
+    } while (SelectedCategoryIndex == -1);
     
-    switch (SeletedCategoryIndex)
+    switch (SelectedCategoryIndex)
     {
     case 1:
         memcpy(SelectedCategoryWords,AsianCountries,sizeof(AsianCountries));
@@ -57,7 +58,7 @@ int main()
     RandomlySelectedWord = PickRandomSelectedWord(SelectedCategoryWords);
     InitializeRandomlySelectedWord(RandomlySelectedWord,HiddenWord);
     //Main game loop
-    while(WrongGuessesByPlayer < MAX_ATTEMPS)
+    while(WrongGuessesByPlayer < MAX_ATTEMPTS)
     {
         printf("\n%s",HiddenWord);
         printf("\n Guess a letter for hidden word : ");
@@ -66,7 +67,6 @@ int main()
         getc(stdin); // To not allow enter as an input
 
         LetterGuessedByPlayer = toupper(LetterGuessedByPlayer);
-        fflush(stdin);
 
         if(EvaluatePlayerGuess(LetterGuessedByPlayer,RandomlySelectedWord,HiddenWord) == 0)
         {
@@ -75,20 +75,20 @@ int main()
         }
         else 
         {
-            printf("You have guessed it corretly\n");
+            printf("You have guessed it correctly\n\n");
         }
-        printf("Attemps left is %d \n",MAX_ATTEMPS - WrongGuessesByPlayer);
+        printf("Attempts left is %d \n",MAX_ATTEMPTS - WrongGuessesByPlayer);
         if(strcmp(RandomlySelectedWord,HiddenWord) == 0)
         {
             printf("You have guessed the correct word, well done!");
-            printf("The word is %s",RandomlySelectedWord);
+            printf("The word is %s\n",RandomlySelectedWord);
 
             break;
         }
     }
-    if(MAX_ATTEMPS == WrongGuessesByPlayer)
+    if(MAX_ATTEMPTS == WrongGuessesByPlayer)
     {
-        printf("Retry exhausted better luck nextime\n");
+        printf("Retry exhausted better luck next time\n");
         printf("The actual word is %s \n",RandomlySelectedWord);
     }
     return 0;
@@ -97,62 +97,44 @@ int main()
 int ChooseCategory()
 {
     int UserInput;
-    printf("Select category of words to play with \n");
-    printf("Press 1 for Asian Countries\n");
-    printf("Press 2 for Indian Cities\n");
-    printf("Press 3 for Animals\n");
-    scanf("%d",&UserInput);
-    getc(stdin);
-    fflush(stdin);
-    
-    if(UserInput > 0 && UserInput < 4)
+    printf("Select category of words to play with \n 1. Asia Countries \n 2. India Cities \n 3. Animals \n");
+    char inputBuffer[100];
+    if (fgets(inputBuffer, sizeof(inputBuffer), stdin) != NULL && sscanf(inputBuffer, "%d", &UserInput) == 1)
     {
-        return UserInput;
+        if(UserInput > 0 && UserInput < 4)
+        {
+            return UserInput;
+        }
     }
-    else
-    {
-        printf("\nINVALID INPUT, PLEASE TRY AGAIN\n\n");
-        return -1;
-    }
-
+    printf("\nINVALID INPUT, PLEASE TRY AGAIN\n\n");
+    return -1;
 }
 
 char *PickRandomSelectedWord(char SelectedCategoryWords[MAX_WORDS][MAX_WORD_LENGTH])
 {
-    srand(time(NULL));
-    int RandomlySelectedWordIndex = rand() % MAX_WORDS;
-    //int RandomlySelectedWordIndex = 0; //hack remove later
-    return((char*)SelectedCategoryWords[RandomlySelectedWordIndex]);
+    int randomIndex = rand() % MAX_WORDS;
+    return SelectedCategoryWords[randomIndex];
 }
 
-void InitializeRandomlySelectedWord(char* SelectedCategoryWords, char HiddenWord[MAX_WORDS])
+void InitializeRandomlySelectedWord(char* RandomlySelectedWord, char HiddenWord[MAX_WORD_LENGTH])
 {
     int index = 0;
-    int WordLength = strlen(SelectedCategoryWords);
-    if(WordLength > 3)
+    int WordLength = strlen(RandomlySelectedWord);
+    for(index = 0; index < WordLength; index++)
     {
-        for(index = 0;index<WordLength;index++)
-        {
-            HiddenWord[index] = '-';
-        }
-        HiddenWord[index] = '\0';
+        HiddenWord[index] = '-';
     }
-    
+    HiddenWord[index] = '\0';
 }
 
-int EvaluatePlayerGuess(char PlayerGuess, char* SelectedCategoryWords, char HiddenWord[])
+int EvaluatePlayerGuess(char PlayerGuess, char* RandomlySelectedWord, char HiddenWord[])
 {
     int index = 0;
     int outcome = 0;
-    for(index = 0; SelectedCategoryWords[index] != '\0';index++)
+    for(index = 0; RandomlySelectedWord[index] != '\0'; index++)
     {
-        // check whether word has already been guessed or its a wrong guess
-        if(PlayerGuess == HiddenWord[index])
-        {
-            return 0;
-        }
-        // player has gussed in correctly
-        if(PlayerGuess == SelectedCategoryWords[index])
+        // Only update positions where the guess matches and hasn't been revealed yet
+        if(PlayerGuess == RandomlySelectedWord[index] && HiddenWord[index] != PlayerGuess)
         {
             HiddenWord[index] = PlayerGuess;
             outcome++;
